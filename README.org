@@ -1,4 +1,5 @@
 #+TITLE: terraform-oci-free-compute-maximal-example
+#+OPTIONS: toc:t
 * What it is
   A Terraform configuration for compute resources on the Free Tier of Oracle Cloud Infrastructure.
 * What it does
@@ -19,4 +20,28 @@
   12. To destroy the resources, navigate back to *Resource Manager* » *Stacks* » *Stack Details* and click on the *Destroy* button and click *Destroy* again.
   13. To delete the stack, after the destroy job completes, from the *Resource Manager* » *Stacks* » *Stack Details* » *Job Details* page go to *Resource Manager* » *Stacks* » *Stack Details*. From the *More Actions* menu choose *Delete Stack* and then *Delete*.
 * Details
-  WIP
+  - The resources deployed include the following:
+    + One (1) Compartment
+    + One (1) Virtual Cloud Network
+    + One (1) Internet Gateway
+    + One (1) Subnet
+    + One (1) Network Security Group
+    + Two (2) AMD Micro instances running Ubuntu 20.04 with the following specifications:
+      - 1 OCPU
+      - 1 GiB of memory
+      - 50 GiB of storage
+      - 1 public IP address
+    + Two (2) AMD Flex instances running Oracle Linux 7.9 with the following specifications:
+      - 2 OCPUs
+      - 12 GiB of memory
+      - 50 GiB of storage
+      - 1 public IP address
+    + Four (4) volume backup policies that will create a backup of each boot volume on a daily basis and retain the backup for one day (due to the limitation of five volume backups)
+
+  - On the Ubuntu instances, Apparmor is removed by cloud-init.
+
+  - On the Oracle Linux instances, a kernel boot argument is added to disable loading of SELinux, but because cloud-init is configured not to execute its power-state-change module, those instances must be rebooted for the change to take effect.
+
+  - The default security list that is explicitly associated with the subnet allows inbound traffic to ports 22, 80, and 443 from any origin and all outbound traffic to any destination.
+
+  - The network security group associated with the instances' VNICs allows ICMP echo (i.e. ping) traffic from any origin and all outbound traffic to any destination.
