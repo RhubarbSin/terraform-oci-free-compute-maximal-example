@@ -1,5 +1,4 @@
 #+TITLE: terraform-oci-free-compute-maximal-example
-#+OPTIONS: toc:t
 * What it is
   A Terraform configuration for compute resources on the Free Tier of Oracle Cloud Infrastructure.
 * What it does
