@@ -9,10 +9,10 @@
   1. Download the repository as a ZIP file: on the repository's GitHub page, select *Download ZIP* from the *Code* menu on the upper right.
   2. Log into the Oracle Cloud Infrastructure Console.
   3. Go to the Resource Manager: from the hamburger menu on the upper left, find *Developer Services* → *Resource Manager* and select *Stacks*.
-  4. Click on the *Create Stack* button , select *.zip file* under *Stack Configuration* and select the file via the *Browse* link.
+  4. Click on the *Create Stack* button, select *.zip file* under *Stack Configuration* and select the file via the *Browse* link.
   5. Click on the *Next* button and provide an SSH public key.
   6. Click *Next* again and then *Create*.
-  7. Click on the *Apply* button and start the plan job by clicking *Apply* again.
+  7. Click on the *Plan* button and start the plan job by clicking *Plan* again.
   8. After the plan job completes, from the *Resource Manager* » *Stacks* » *Stack Details* » *Job Details* page go to *Resource Manager* » *Stacks* » *Stack Details*.
   9. Click on the *Apply* button and start the apply job by clicking *Apply* again.
   10. After the apply job completes, from the hamburger menu find *Compute* → *Compute* and select *Instances*. Select the newly created compartment (named /OCI-Free-Compute-Maximal/ by default) from the *Compartment* menu.
@@ -26,22 +26,18 @@
     + One (1) Internet Gateway
     + One (1) Subnet
     + One (1) Network Security Group
-    + Two (2) AMD Micro instances running Ubuntu 20.04 with the following specifications:
+    + Two (2) AMD Micro instances running the latest available Ubuntu distribution with the following specifications:
       - 1 OCPU
       - 1 GiB of memory
       - 50 GiB of storage
       - 1 public IP address
-    + Two (2) AMD Flex instances running Oracle Linux 7.9 with the following specifications:
+    + Two (2) AMD Flex instances running the latest Oracle Linux distribution with the following specifications:
       - 2 OCPUs
       - 12 GiB of memory
       - 50 GiB of storage
       - 1 public IP address
     + Four (4) volume backup policies that will create a backup of each boot volume on a daily basis and retain the backup for one day (due to the limitation of five volume backups)
-
   - On the Ubuntu instances, Apparmor is removed by cloud-init.
-
   - On the Oracle Linux instances, a kernel boot argument is added to disable loading of SELinux, but because cloud-init is configured not to execute its power-state-change module, those instances must be rebooted for the change to take effect.
-
   - The default security list that is explicitly associated with the subnet allows inbound traffic to ports 22, 80, and 443 from any origin and all outbound traffic to any destination.
-
-  - The network security group associated with the instances' VNICs allows ICMP echo (i.e. ping) traffic from any origin and all outbound traffic to any destination.
+  - The network security group associated with the instances' VNICs allows inbound ICMP echo (i.e. ping) traffic from any origin and all outbound traffic to any destination.
