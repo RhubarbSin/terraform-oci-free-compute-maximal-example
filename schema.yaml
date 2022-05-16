@@ -1,0 +1,21 @@
+---
+title: Example of a maximal compute instance configuration
+description: Deploys a maximal set of resources to run compute instances on the OCI Free Tier
+locale: "en"
+schemaVersion: 1.1.0
+variables:
+  ssh_public_key:
+    title: SSH Public Key
+    description: The public SSH key for the key pair used to log into compute instances via SSH
+    type: oci:core:ssh:publickey
+    required: true
+  tenancy_ocid:
+    title: Tenancy
+    description: OCID of tenancy
+    type: oci:identity:compartment:id
+  name:
+    title: Name
+    description: Display name for resources
+  cidr_block:
+    title: VCN CIDR Block
+    description: The CIDR block of the VCN created for the compute instance
