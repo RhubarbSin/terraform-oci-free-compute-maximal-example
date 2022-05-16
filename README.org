@@ -1,8 +1,8 @@
 #+TITLE: terraform-oci-free-compute-maximal-example
 * What it is
-  A Terraform configuration for compute resources on the Free Tier of Oracle Cloud Infrastructure
+  A Terraform configuration for compute resources on the Free Tier of Oracle Cloud Infrastructure.
 * What it does
-  Deploys a maximal set of resources to run compute instances on the OCI Free Tier
+  Deploys a maximal set of resources to run compute instances on the OCI Free Tier.
 * How to use it
   For simplicity—to avoid the need to install and configure Terraform and the OCI CLI—this configuration is designed for deployment as a stack in the OCI Resource Manager.
   1. Download the repository as a ZIP file: on the repository's GitHub page, select *Download ZIP* from the *Code* menu on the upper right.
@@ -11,12 +11,12 @@
   4. Click on the *Create Stack* button , select *.zip file* under *Stack Configuration* and select the file via the *Browse* link.
   5. Click on the *Next* button and provide an SSH public key.
   6. Click *Next* again and then *Create*.
-  7. Click on the *Apply* button and start the apply job by clicking *Apply* again.
+  7. Click on the *Apply* button and start the plan job by clicking *Apply* again.
   8. After the plan job completes, from the *Resource Manager* » *Stacks* » *Stack Details* » *Job Details* page go to *Resource Manager* » *Stacks* » *Stack Details*.
   9. Click on the *Apply* button and start the apply job by clicking *Apply* again.
   10. After the apply job completes, from the hamburger menu find *Compute* → *Compute* and select *Instances*. Select the newly created compartment (named /OCI-Free-Compute-Maximal/ by default) from the *Compartment* menu.
   11. Information for connecting to the instances with SSH can be found by selecting an instance and viewing the details under *Instance access* on the *Instance information* tab.
-  12. To destroy the resources, navigate back to *Resource Manager* » *Stacks* » *Stack Details and click on the *Destroy* button and click *Destroy* again.
+  12. To destroy the resources, navigate back to *Resource Manager* » *Stacks* » *Stack Details* and click on the *Destroy* button and click *Destroy* again.
   13. To delete the stack, after the destroy job completes, from the *Resource Manager* » *Stacks* » *Stack Details* » *Job Details* page go to *Resource Manager* » *Stacks* » *Stack Details*. From the *More Actions* menu choose *Delete Stack* and then *Delete*.
 * Details
   WIP
