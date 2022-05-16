@@ -40,59 +40,11 @@
 # terraform init
 # terraform plan -var tenancy_ocid=<ocid>
 # terraform apply -var tenancy_ocid=<ocid>
-#
-# This work is released under the DWTFYWWI license (https://github.com/avar/DWTFYWWI).
-
-variable "tenancy_ocid" {
-  description = "OCID of the tenancy"
-  type        = string
-}
-
-variable "availability_domain_index_micro" {
-  description = "Index of the availability domain in which VM.Standard.E2.1.Micro instances can be created"
-  type        = number
-  default     = 1
-}
-
-variable "ssh_public_key" {
-  description = "Path to public key file to be used for SSH access to compute instances"
-  type        = string
-  default     = "id_rsa.pub"
-}
-
-variable "availability_domain_index_flex" {
-  description = "Index of the availability domain in which VM.Standard.A1.Flex instances will be created"
-  type        = number
-  default     = 0
-}
-
-variable "vcn_cidr_block" {
-  description = "CIDR block used for the VCN"
-  type        = string
-  default     = "10.10.10.0/24"
-}
-
-variable "name" {
-  description = "Name used as display name for various resources"
-  type        = string
-  default     = "OCI-Free-Compute"
-}
-
-variable "region" {
-  description = "Name of OCI region in which resources will be deployed"
-  type        = string
-  default     = "us-ashburn-1"
-}
-
-provider "oci" {
-  region       = var.region
-  tenancy_ocid = var.tenancy_ocid
-}
 
 resource "oci_identity_compartment" "this" {
   compartment_id = var.tenancy_ocid
   description    = var.name
-  name           = var.name
+  name           = replace(var.name, " ", "-")
 
   enable_delete = true
 }
@@ -100,7 +52,7 @@ resource "oci_identity_compartment" "this" {
 resource "oci_core_vcn" "this" {
   compartment_id = oci_identity_compartment.this.id
 
-  cidr_blocks  = [var.vcn_cidr_block]
+  cidr_blocks  = [var.cidr_block]
   display_name = var.name
   dns_label    = "vcn"
 }
@@ -122,15 +74,6 @@ resource "oci_core_default_route_table" "this" {
 
     description = "Default route"
     destination = "0.0.0.0/0"
-  }
-}
-
-locals {
-  protocol_number = {
-    icmp   = 1
-    icmpv6 = 58
-    tcp    = 6
-    udp    = 17
   }
 }
 
@@ -189,18 +132,22 @@ resource "oci_core_network_security_group_security_rule" "this" {
 
 }
 
-locals {
-  shapes = {
-    flex : "VM.Standard.A1.Flex",
-    micro : "VM.Standard.E2.1.Micro",
-  }
+data "oci_identity_availability_domains" "this" {
+  compartment_id = var.tenancy_ocid
+}
+
+data "oci_core_shapes" "this" {
+  for_each = toset(data.oci_identity_availability_domains.this.availability_domains[*].name)
+
+  compartment_id = var.tenancy_ocid
+
+  availability_domain = each.key
 }
 
 data "oci_core_images" "this" {
   compartment_id = oci_identity_compartment.this.id
 
   operating_system         = "Canonical Ubuntu"
-  operating_system_version = "20.04"
   shape                    = local.shapes.micro
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
@@ -208,19 +155,15 @@ data "oci_core_images" "this" {
 
   filter {
     name   = "display_name"
-    values = ["^Canonical-Ubuntu-20.04-([\\.0-9-]+)$"]
+    values = ["^Canonical-Ubuntu-([\\.0-9-]+)$"]
     regex  = true
   }
-}
-
-data "oci_identity_availability_domains" "this" {
-  compartment_id = var.tenancy_ocid
 }
 
 resource "oci_core_instance" "this" {
   count = 2
 
-  availability_domain = data.oci_identity_availability_domains.this.availability_domains[var.availability_domain_index_micro].name
+  availability_domain = local.availability_domain_micro
   compartment_id      = oci_identity_compartment.this.id
   shape               = local.shapes.micro
 
@@ -228,7 +171,7 @@ resource "oci_core_instance" "this" {
   preserve_boot_volume = false
 
   metadata = {
-    ssh_authorized_keys = file(pathexpand(var.ssh_public_key))
+    ssh_authorized_keys = var.ssh_public_key
     user_data = base64encode(<<EOF
 #cloud-config
 runcmd:
@@ -287,7 +230,6 @@ data "oci_core_images" "that" {
   compartment_id = oci_identity_compartment.this.id
 
   operating_system         = "Oracle Linux"
-  operating_system_version = "7.9"
   shape                    = local.shapes.flex
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
@@ -297,7 +239,7 @@ data "oci_core_images" "that" {
 resource "oci_core_instance" "that" {
   count = 2
 
-  availability_domain = data.oci_identity_availability_domains.this.availability_domains[var.availability_domain_index_flex].name
+  availability_domain = data.oci_identity_availability_domains.this.availability_domains.0.name
   compartment_id      = oci_identity_compartment.this.id
   shape               = local.shapes.flex
 
@@ -305,7 +247,7 @@ resource "oci_core_instance" "that" {
   preserve_boot_volume = false
 
   metadata = {
-    ssh_authorized_keys = file(pathexpand("~/.ssh/id_rsa.pub"))
+    ssh_authorized_keys = var.ssh_public_key
     user_data = base64encode(<<EOF
 #cloud-config
 runcmd:
