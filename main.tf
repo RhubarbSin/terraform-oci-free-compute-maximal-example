@@ -82,11 +82,6 @@ resource "oci_core_network_security_group_security_rule" "this" {
   network_security_group_id = oci_core_network_security_group.this.id
   protocol                  = local.protocol_number.icmp
   source                    = "0.0.0.0/0"
-
-  icmp_options {
-    type = 8
-  }
-
 }
 
 data "oci_identity_availability_domains" "this" {
