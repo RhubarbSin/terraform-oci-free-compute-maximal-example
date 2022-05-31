@@ -82,6 +82,10 @@ resource "oci_core_network_security_group_security_rule" "this" {
   network_security_group_id = oci_core_network_security_group.this.id
   protocol                  = local.protocol_number.icmp
   source                    = "0.0.0.0/0"
+
+  icmp_options {
+    type = 8
+  }
 }
 
 data "oci_identity_availability_domains" "this" {
@@ -99,11 +103,11 @@ data "oci_core_shapes" "this" {
 data "oci_core_images" "this" {
   compartment_id = oci_identity_compartment.this.id
 
-  operating_system         = "Canonical Ubuntu"
-  shape                    = local.shapes.micro
-  sort_by                  = "TIMECREATED"
-  sort_order               = "DESC"
-  state                    = "available"
+  operating_system = "Canonical Ubuntu"
+  shape            = local.shapes.micro
+  sort_by          = "TIMECREATED"
+  sort_order       = "DESC"
+  state            = "available"
 
   filter {
     name   = "display_name"
@@ -181,11 +185,11 @@ resource "oci_core_public_ip" "this" {
 data "oci_core_images" "that" {
   compartment_id = oci_identity_compartment.this.id
 
-  operating_system         = "Oracle Linux"
-  shape                    = local.shapes.flex
-  sort_by                  = "TIMECREATED"
-  sort_order               = "DESC"
-  state                    = "available"
+  operating_system = "Oracle Linux"
+  shape            = local.shapes.flex
+  sort_by          = "TIMECREATED"
+  sort_order       = "DESC"
+  state            = "available"
 }
 
 resource "oci_core_instance" "that" {
