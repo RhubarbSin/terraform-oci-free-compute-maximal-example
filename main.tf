@@ -82,10 +82,6 @@ resource "oci_core_network_security_group_security_rule" "this" {
   network_security_group_id = oci_core_network_security_group.this.id
   protocol                  = local.protocol_number.icmp
   source                    = "0.0.0.0/0"
-
-  icmp_options {
-    type = 8
-  }
 }
 
 data "oci_identity_availability_domains" "this" {
@@ -103,11 +99,11 @@ data "oci_core_shapes" "this" {
 data "oci_core_images" "this" {
   compartment_id = oci_identity_compartment.this.id
 
-  operating_system = "Canonical Ubuntu"
-  shape            = local.shapes.micro
-  sort_by          = "TIMECREATED"
-  sort_order       = "DESC"
-  state            = "available"
+  operating_system         = "Canonical Ubuntu"
+  shape                    = local.shapes.micro
+  sort_by                  = "TIMECREATED"
+  sort_order               = "DESC"
+  state                    = "available"
 
   filter {
     name   = "display_name"
@@ -147,7 +143,6 @@ EOF
   }
 
   create_vnic_details {
-    assign_public_ip = false
     display_name     = format("Ubuntu %d", count.index + 1)
     hostname_label   = format("ubuntu-%d", count.index + 1)
     nsg_ids          = [oci_core_network_security_group.this.id]
@@ -165,41 +160,22 @@ EOF
   }
 }
 
-data "oci_core_private_ips" "this" {
-  count = 2
-
-  ip_address = oci_core_instance.this[count.index].private_ip
-  subnet_id  = oci_core_subnet.this.id
-}
-
-resource "oci_core_public_ip" "this" {
-  count = 2
-
-  compartment_id = oci_identity_compartment.this.id
-  lifetime       = "RESERVED"
-
-  display_name  = oci_core_instance.this[count.index].display_name
-  private_ip_id = data.oci_core_private_ips.this[count.index].private_ips.0.id
-}
-
 data "oci_core_images" "that" {
   compartment_id = oci_identity_compartment.this.id
 
-  operating_system = "Oracle Linux"
-  shape            = local.shapes.flex
-  sort_by          = "TIMECREATED"
-  sort_order       = "DESC"
-  state            = "available"
+  operating_system         = "Oracle Linux"
+  shape                    = local.shapes.flex
+  sort_by                  = "TIMECREATED"
+  sort_order               = "DESC"
+  state                    = "available"
 }
 
 resource "oci_core_instance" "that" {
-  count = 2
-
   availability_domain = data.oci_identity_availability_domains.this.availability_domains.0.name
   compartment_id      = oci_identity_compartment.this.id
   shape               = local.shapes.flex
 
-  display_name         = format("Oracle Linux %d", count.index + 1)
+  display_name         = "Oracle Linux"
   preserve_boot_volume = false
 
   metadata = {
@@ -224,21 +200,21 @@ EOF
 
   create_vnic_details {
     assign_public_ip = false
-    display_name     = format("Oracle Linux %d", count.index + 1)
-    hostname_label   = format("oracle-linux-%d", count.index + 1)
+    display_name     = "Oracle Linux"
+    hostname_label   = "oracle-linux"
     nsg_ids          = [oci_core_network_security_group.this.id]
     subnet_id        = oci_core_subnet.this.id
   }
 
   shape_config {
-    memory_in_gbs = 12
-    ocpus         = 2
+    memory_in_gbs = 24
+    ocpus         = 4
   }
 
   source_details {
     source_id               = data.oci_core_images.that.images.0.id
     source_type             = "image"
-    boot_volume_size_in_gbs = 50
+    boot_volume_size_in_gbs = 100
   }
 
   lifecycle {
@@ -247,24 +223,20 @@ EOF
 }
 
 data "oci_core_private_ips" "that" {
-  count = 2
-
-  ip_address = oci_core_instance.that[count.index].private_ip
+  ip_address = oci_core_instance.that.private_ip
   subnet_id  = oci_core_subnet.this.id
 }
 
 resource "oci_core_public_ip" "that" {
-  count = 2
-
   compartment_id = oci_identity_compartment.this.id
   lifetime       = "RESERVED"
 
-  display_name  = oci_core_instance.this[count.index].display_name
-  private_ip_id = data.oci_core_private_ips.that[count.index].private_ips.0.id
+  display_name  = oci_core_instance.that.display_name
+  private_ip_id = data.oci_core_private_ips.that.private_ips.0.id
 }
 
 resource "oci_core_volume_backup_policy" "this" {
-  count = 4
+  count = 3
 
   compartment_id = oci_identity_compartment.this.id
 
@@ -281,12 +253,12 @@ resource "oci_core_volume_backup_policy" "this" {
 }
 
 resource "oci_core_volume_backup_policy_assignment" "this" {
-  count = 4
+  count = 3
 
   asset_id = (
     count.index < 2 ?
     oci_core_instance.this[count.index].boot_volume_id :
-    oci_core_instance.that[count.index - 2].boot_volume_id
+    oci_core_instance.that.boot_volume_id
   )
   policy_id = oci_core_volume_backup_policy.this[count.index].id
 }
