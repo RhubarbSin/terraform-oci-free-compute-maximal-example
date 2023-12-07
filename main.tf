@@ -99,16 +99,22 @@ data "oci_core_shapes" "this" {
 data "oci_core_images" "this" {
   compartment_id = oci_identity_compartment.this.id
 
-  operating_system         = "Canonical Ubuntu"
-  shape                    = local.shapes.micro
-  sort_by                  = "TIMECREATED"
-  sort_order               = "DESC"
-  state                    = "available"
+  operating_system = "Canonical Ubuntu"
+  shape            = local.shapes.micro
+  sort_by          = "TIMECREATED"
+  sort_order       = "DESC"
+  state            = "available"
 
   filter {
     name   = "display_name"
     values = ["^Canonical-Ubuntu-([\\.0-9-]+)$"]
     regex  = true
+  }
+}
+
+data "cloudinit_config" "this" {
+  part {
+    content = file("user-data-this.yaml")
   }
 }
 
@@ -124,12 +130,7 @@ resource "oci_core_instance" "this" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
-    user_data = base64encode(<<EOF
-#cloud-config
-runcmd:
-  - apt remove --assume-yes --purge apparmor
-EOF
-    )
+    user_data           = data.cloudinit_config.this.rendered
   }
 
   agent_config {
@@ -143,10 +144,10 @@ EOF
   }
 
   create_vnic_details {
-    display_name     = format("Ubuntu %d", count.index + 1)
-    hostname_label   = format("ubuntu-%d", count.index + 1)
-    nsg_ids          = [oci_core_network_security_group.this.id]
-    subnet_id        = oci_core_subnet.this.id
+    display_name   = format("Ubuntu %d", count.index + 1)
+    hostname_label = format("ubuntu-%d", count.index + 1)
+    nsg_ids        = [oci_core_network_security_group.this.id]
+    subnet_id      = oci_core_subnet.this.id
   }
 
   source_details {
@@ -163,11 +164,17 @@ EOF
 data "oci_core_images" "that" {
   compartment_id = oci_identity_compartment.this.id
 
-  operating_system         = "Oracle Linux"
-  shape                    = local.shapes.flex
-  sort_by                  = "TIMECREATED"
-  sort_order               = "DESC"
-  state                    = "available"
+  operating_system = "Oracle Linux"
+  shape            = local.shapes.flex
+  sort_by          = "TIMECREATED"
+  sort_order       = "DESC"
+  state            = "available"
+}
+
+data "cloudinit_config" "that" {
+  part {
+    content = file("user-data-that.yaml")
+  }
 }
 
 resource "oci_core_instance" "that" {
@@ -180,12 +187,7 @@ resource "oci_core_instance" "that" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
-    user_data = base64encode(<<EOF
-#cloud-config
-runcmd:
-  - grubby --args selinux=0 --update-kernel ALL
-EOF
-    )
+    user_data           = data.cloudinit_config.that.rendered
   }
 
   agent_config {
