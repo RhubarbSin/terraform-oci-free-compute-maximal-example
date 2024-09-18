@@ -125,7 +125,7 @@ resource "oci_core_instance" "this" {
   compartment_id      = oci_identity_compartment.this.id
   shape               = local.shapes.micro
 
-  display_name         = format("Ubuntu %d", count.index + 1)
+  display_name         = "Ubuntu ${count.index + 1}"
   preserve_boot_volume = false
 
   metadata = {
@@ -144,8 +144,8 @@ resource "oci_core_instance" "this" {
   }
 
   create_vnic_details {
-    display_name   = format("Ubuntu %d", count.index + 1)
-    hostname_label = format("ubuntu-%d", count.index + 1)
+    display_name   = "Ubuntu ${count.index + 1}"
+    hostname_label = "ubuntu-${count.index + 1}"
     nsg_ids        = [oci_core_network_security_group.this.id]
     subnet_id      = oci_core_subnet.this.id
   }
@@ -242,7 +242,7 @@ resource "oci_core_volume_backup_policy" "this" {
 
   compartment_id = oci_identity_compartment.this.id
 
-  display_name = format("Daily %d", count.index)
+  display_name = "Daily ${count.index}"
 
   schedules {
     backup_type       = "INCREMENTAL"
