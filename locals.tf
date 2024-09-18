@@ -21,7 +21,7 @@ locals {
 
   user_data = {
     this : {
-      runcmd : ["apt remove --assume-yes --purge apparmor"]
+      runcmd : ["apt-get remove --quiet --assume-yes --purge apparmor"]
     },
     that : {
       runcmd : ["grubby --args selinux=0 --update-kernel ALL"]
