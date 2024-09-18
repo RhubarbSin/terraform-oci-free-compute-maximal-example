@@ -1,3 +1,0 @@
-#cloud-config
-runcmd:
-  - apt remove --assume-yes --purge apparmor

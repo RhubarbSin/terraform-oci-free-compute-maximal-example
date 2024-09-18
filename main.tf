@@ -96,6 +96,16 @@ data "oci_core_shapes" "this" {
   availability_domain = each.key
 }
 
+data "cloudinit_config" "this" {
+  for_each = local.user_data
+
+  part {
+    content = yamlencode(each.value)
+
+    content_type = "text/cloud-config"
+  }
+}
+
 data "oci_core_images" "this" {
   compartment_id = oci_identity_compartment.this.id
 
@@ -112,12 +122,6 @@ data "oci_core_images" "this" {
   }
 }
 
-data "cloudinit_config" "this" {
-  part {
-    content = file("user-data-this.yaml")
-  }
-}
-
 resource "oci_core_instance" "this" {
   count = 2
 
@@ -130,7 +134,7 @@ resource "oci_core_instance" "this" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
-    user_data           = data.cloudinit_config.this.rendered
+    user_data           = data.cloudinit_config.this["this"].rendered
   }
 
   agent_config {
@@ -171,12 +175,6 @@ data "oci_core_images" "that" {
   state            = "available"
 }
 
-data "cloudinit_config" "that" {
-  part {
-    content = file("user-data-that.yaml")
-  }
-}
-
 resource "oci_core_instance" "that" {
   availability_domain = data.oci_identity_availability_domains.this.availability_domains.0.name
   compartment_id      = oci_identity_compartment.this.id
@@ -187,7 +185,7 @@ resource "oci_core_instance" "that" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
-    user_data           = data.cloudinit_config.that.rendered
+    user_data           = data.cloudinit_config.this["that"].rendered
   }
 
   agent_config {

@@ -18,4 +18,13 @@ locals {
       if contains(m.shapes[*].name, local.shapes.micro)
     ]
   )
+
+  user_data = {
+    this : {
+      runcmd : ["apt remove --assume-yes --purge apparmor"]
+    },
+    that : {
+      runcmd : ["grubby --args selinux=0 --update-kernel ALL"]
+    },
+  }
 }

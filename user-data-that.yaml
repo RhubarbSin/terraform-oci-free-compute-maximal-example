@@ -1,3 +1,0 @@
-#cloud-config
-runcmd:
-  - grubby --args selinux=0 --update-kernel ALL
