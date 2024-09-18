@@ -238,15 +238,13 @@ resource "oci_core_public_ip" "that" {
 }
 
 resource "oci_core_volume_backup_policy" "this" {
-  count = 3
-
   compartment_id = oci_identity_compartment.this.id
 
-  display_name = "Daily ${count.index}"
+  display_name = "Daily"
 
   schedules {
     backup_type       = "INCREMENTAL"
-    hour_of_day       = count.index
+    hour_of_day       = 0
     offset_type       = "STRUCTURED"
     period            = "ONE_DAY"
     retention_seconds = 86400
@@ -262,5 +260,5 @@ resource "oci_core_volume_backup_policy_assignment" "this" {
     oci_core_instance.this[count.index].boot_volume_id :
     oci_core_instance.that.boot_volume_id
   )
-  policy_id = oci_core_volume_backup_policy.this[count.index].id
+  policy_id = oci_core_volume_backup_policy.this.id
 }

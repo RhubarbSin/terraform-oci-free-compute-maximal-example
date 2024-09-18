@@ -35,7 +35,7 @@
       - 24 GiB of memory
       - 100 GiB of storage
       - 1 reserved public IP address
-    + Three (3) volume backup policies that will create a backup of each boot volume on a daily basis and retain the backup for one day (due to the limitation of five volume backups)
+    + One (1) volume backup policy that will create a backup of each boot volume on a daily basis and retain the backup for one day (due to the limitation of five volume backups)
   - On the Ubuntu instances, Apparmor is removed by cloud-init.
   - On the Oracle Linux instance, a kernel boot argument is added to disable loading of SELinux, but because cloud-init is configured not to execute its power-state-change module, that instance must be rebooted for the change to take effect.
   - The default security list that is explicitly associated with the subnet allows inbound traffic to ports 22, 80, and 443 from any origin and all outbound traffic to any destination.
