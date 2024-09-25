@@ -111,15 +111,9 @@ data "oci_core_images" "this" {
 
   operating_system = "Canonical Ubuntu"
   shape            = local.shapes.micro
-  sort_by          = "TIMECREATED"
+  sort_by          = "DISPLAYNAME"
   sort_order       = "DESC"
   state            = "available"
-
-  filter {
-    name   = "display_name"
-    values = ["^Canonical-Ubuntu-([\\.0-9-]+)$"]
-    regex  = true
-  }
 }
 
 resource "oci_core_instance" "this" {
@@ -170,7 +164,7 @@ data "oci_core_images" "that" {
 
   operating_system = "Oracle Linux"
   shape            = local.shapes.flex
-  sort_by          = "TIMECREATED"
+  sort_by          = "DISPLAYNAME"
   sort_order       = "DESC"
   state            = "available"
 }
