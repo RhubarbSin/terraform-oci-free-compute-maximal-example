@@ -18,4 +18,4 @@ variables:
     description: Display name for resources
   cidr_block:
     title: VCN CIDR Block
-    description: The CIDR block of the VCN created for the compute instance
+    description: The CIDR block of the VCN created for the compute instances
