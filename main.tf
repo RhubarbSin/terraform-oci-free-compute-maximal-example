@@ -6,10 +6,15 @@ resource "oci_identity_compartment" "this" {
   enable_delete = true
 }
 
+resource "random_integer" "this" {
+  min = 0
+  max = 255
+}
+
 resource "oci_core_vcn" "this" {
   compartment_id = oci_identity_compartment.this.id
 
-  cidr_blocks  = [var.cidr_block]
+  cidr_blocks  = [coalesce(var.cidr_block, "192.168.${random_integer.this.result}.0/24")]
   display_name = var.name
   dns_label    = "vcn"
 }

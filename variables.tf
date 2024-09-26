@@ -12,10 +12,10 @@ variable "name" {
 variable "cidr_block" {
   description = "CIDR block of the VCN"
   type        = string
-  default     = "10.10.10.0/24"
+  default     = null
 
   validation {
-    condition     = can(cidrsubnet(var.cidr_block, 2, 0))
+    condition     = var.cidr_block == null ? true : can(cidrsubnet(var.cidr_block, 2, 0))
     error_message = "The value of cidr_block variable must be a valid CIDR address with a prefix no greater than 30."
   }
 }
