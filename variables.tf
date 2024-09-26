@@ -15,7 +15,7 @@ variable "cidr_block" {
   default     = "10.10.10.0/24"
 
   validation {
-    condition     = can(cidrsubnets(var.cidr_block, 2))
+    condition     = can(cidrsubnet(var.cidr_block, 2, 0))
     error_message = "The value of cidr_block variable must be a valid CIDR address with a prefix no greater than 30."
   }
 }
