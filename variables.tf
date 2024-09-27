@@ -15,7 +15,16 @@ variable "cidr_block" {
   default     = null
 
   validation {
-    condition     = var.cidr_block == null ? true : can(cidrsubnet(var.cidr_block, 2, 0))
+    condition = (
+      var.cidr_block == null ?
+      true :
+      alltrue(
+        [
+          can(cidrsubnet(var.cidr_block, 2, 0)),
+          cidrhost(var.cidr_block, 0) == split("/", var.cidr_block).0,
+        ]
+      )
+    )
     error_message = "The value of cidr_block variable must be a valid CIDR address with a prefix no greater than 30."
   }
 }
