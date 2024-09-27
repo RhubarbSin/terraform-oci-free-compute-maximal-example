@@ -3,19 +3,35 @@ title: Example of a maximal compute instance configuration
 description: Deploys a maximal set of resources to run compute instances on the OCI Free Tier
 locale: "en"
 schemaVersion: 1.1.0
+variableGroups:
+  - title: Required Variables
+    variables:
+    - ssh_public_key
+    - name
+  - title: Optional Variables
+    variables:
+    - cidr_block
+  - title: Hidden Variables
+    visible: false
+    variables:
+      - tenancy_ocid
+      - region
 variables:
   ssh_public_key:
-    title: SSH Public Key
-    description: The public SSH key for the key pair used to log into compute instances via SSH
+    title: The public SSH key for the key pair used to log into the compute instance via SSH
+    description: ""
     type: oci:core:ssh:publickey
     required: true
-  tenancy_ocid:
-    title: Tenancy
-    description: OCID of tenancy
-    type: oci:identity:compartment:id
   name:
-    title: Name
-    description: Display name for resources
+    title: The display name for resources
+    description: ""
+    type: string
+    required: true
   cidr_block:
-    title: VCN CIDR Block
-    description: The CIDR block of the VCN created for the compute instances
+    title: The CIDR block of the VCN created for the compute instance
+    description: An invalid address will fail Terraform validation rules.
+    pattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/(1[6-9]|2[0-9]|30)$
+  tenancy_ocid:
+    type: oci:identity:compartment:id
+  region:
+    type: oci:identity:region:name

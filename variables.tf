@@ -1,11 +1,19 @@
 variable "tenancy_ocid" {
   description = "OCID of the tenancy"
   type        = string
+  nullable    = false
+}
+
+variable "region" {
+  description = "Region for resources"
+  type        = string
+  nullable    = false
 }
 
 variable "name" {
   description = "Display name for resources"
   type        = string
+  nullable    = false
   default     = "OCI Free Compute Maximal"
 }
 
@@ -32,4 +40,5 @@ variable "cidr_block" {
 variable "ssh_public_key" {
   description = "Public key to be used for SSH access to compute instances"
   type        = string
+  nullable    = false
 }
