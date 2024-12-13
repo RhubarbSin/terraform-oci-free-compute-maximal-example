@@ -39,4 +39,4 @@
   - On the Ubuntu instances, Apparmor is removed by cloud-init.
   - On the Oracle Linux instance, a kernel boot argument is added to disable loading of SELinux, but because cloud-init is configured not to execute its power-state-change module, that instance must be rebooted for the change to take effect.
   - The default security list that is explicitly associated with the subnet allows inbound traffic to ports 22, 80, and 443 from any origin and all outbound traffic to any destination.
-  - The network security group associated with the instances' VNICs allows inbound ICMP echo (i.e. ping) traffic from any origin and all outbound traffic to any destination.
+  - The network security group associated with the instances' VNICs allows inbound ICMP echo (i.e. ping) traffic from any origin.
