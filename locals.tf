@@ -6,25 +6,20 @@ locals {
     udp    = 17
   }
 
-  shapes = {
-    flex : "VM.Standard.A1.Flex",
-    micro : "VM.Standard.E2.1.Micro",
-  }
-
-  availability_domain_micro = one(
-    [
-      for m in data.oci_core_shapes.this :
-      m.availability_domain
-      if contains(m.shapes[*].name, local.shapes.micro)
-    ]
-  )
-
-  user_data = {
-    this : {
-      runcmd : ["apt-get remove --quiet --assume-yes --purge apparmor"]
+  instance = {
+    ubuntu = {
+      shape : "VM.Standard.E2.1.Micro",
+      operating_system = "Canonical Ubuntu",
+      user_data : {
+        runcmd : ["apt-get remove --quiet --assume-yes --purge apparmor"],
+      },
     },
-    that : {
-      runcmd : ["grubby --args selinux=0 --update-kernel ALL"]
+    oracle = {
+      shape : "VM.Standard.A1.Flex",
+      operating_system : "Oracle Linux",
+      user_data : {
+        runcmd : ["grubby --args selinux=0 --update-kernel ALL"],
+      },
     },
   }
 }

@@ -93,57 +93,67 @@ data "oci_identity_availability_domains" "this" {
   compartment_id = var.tenancy_ocid
 }
 
+resource "random_shuffle" "this" {
+  input = data.oci_identity_availability_domains.this.availability_domains[*].name
+
+  result_count = 1
+}
+
 data "oci_core_shapes" "this" {
   for_each = toset(data.oci_identity_availability_domains.this.availability_domains[*].name)
 
-  compartment_id = var.tenancy_ocid
+  compartment_id = oci_identity_compartment.this.id
 
   availability_domain = each.key
 }
 
 data "cloudinit_config" "this" {
-  for_each = local.user_data
+  for_each = local.instance
 
   part {
-    content = yamlencode(each.value)
+    content = yamlencode(each.value.user_data)
 
     content_type = "text/cloud-config"
   }
 }
 
 data "oci_core_images" "this" {
+  for_each = local.instance
+
   compartment_id = oci_identity_compartment.this.id
 
-  operating_system = "Canonical Ubuntu"
-  shape            = local.shapes.micro
+  operating_system = each.value.operating_system
+  shape            = each.value.shape
   sort_by          = "DISPLAYNAME"
   sort_order       = "DESC"
-  state            = "available"
+  state            = "AVAILABLE"
 }
 
-resource "oci_core_instance" "this" {
+resource "oci_core_instance" "ubuntu" {
   count = 2
 
-  availability_domain = local.availability_domain_micro
-  compartment_id      = oci_identity_compartment.this.id
-  shape               = local.shapes.micro
+  availability_domain = one(
+    [
+      for m in data.oci_core_shapes.this :
+      m.availability_domain
+      if contains(m.shapes[*].name, local.instance.ubuntu.shape)
+    ]
+  )
+  compartment_id = oci_identity_compartment.this.id
+  shape          = local.instance.ubuntu.shape
 
   display_name         = "Ubuntu ${count.index + 1}"
   preserve_boot_volume = false
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
-    user_data           = data.cloudinit_config.this["this"].rendered
+    user_data           = data.cloudinit_config.this["ubuntu"].rendered
   }
 
   agent_config {
     are_all_plugins_disabled = true
     is_management_disabled   = true
     is_monitoring_disabled   = true
-  }
-
-  availability_config {
-    is_live_migration_preferred = null
   }
 
   create_vnic_details {
@@ -154,7 +164,7 @@ resource "oci_core_instance" "this" {
   }
 
   source_details {
-    source_id               = data.oci_core_images.this.images.0.id
+    source_id               = data.oci_core_images.this["ubuntu"].images.0.id
     source_type             = "image"
     boot_volume_size_in_gbs = 50
   }
@@ -164,37 +174,23 @@ resource "oci_core_instance" "this" {
   }
 }
 
-data "oci_core_images" "that" {
-  compartment_id = oci_identity_compartment.this.id
-
-  operating_system = "Oracle Linux"
-  shape            = local.shapes.flex
-  sort_by          = "DISPLAYNAME"
-  sort_order       = "DESC"
-  state            = "available"
-}
-
-resource "oci_core_instance" "that" {
-  availability_domain = data.oci_identity_availability_domains.this.availability_domains.0.name
+resource "oci_core_instance" "oracle" {
+  availability_domain = random_shuffle.this.result.0
   compartment_id      = oci_identity_compartment.this.id
-  shape               = local.shapes.flex
+  shape               = local.instance.oracle.shape
 
   display_name         = "Oracle Linux"
   preserve_boot_volume = false
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
-    user_data           = data.cloudinit_config.this["that"].rendered
+    user_data           = data.cloudinit_config.this["oracle"].rendered
   }
 
   agent_config {
     are_all_plugins_disabled = true
     is_management_disabled   = true
     is_monitoring_disabled   = true
-  }
-
-  availability_config {
-    is_live_migration_preferred = null
   }
 
   create_vnic_details {
@@ -211,7 +207,7 @@ resource "oci_core_instance" "that" {
   }
 
   source_details {
-    source_id               = data.oci_core_images.that.images.0.id
+    source_id               = data.oci_core_images.this["oracle"].images.0.id
     source_type             = "image"
     boot_volume_size_in_gbs = 100
   }
@@ -221,17 +217,17 @@ resource "oci_core_instance" "that" {
   }
 }
 
-data "oci_core_private_ips" "that" {
-  ip_address = oci_core_instance.that.private_ip
+data "oci_core_private_ips" "this" {
+  ip_address = oci_core_instance.oracle.private_ip
   subnet_id  = oci_core_subnet.this.id
 }
 
-resource "oci_core_public_ip" "that" {
+resource "oci_core_public_ip" "this" {
   compartment_id = oci_identity_compartment.this.id
   lifetime       = "RESERVED"
 
-  display_name  = oci_core_instance.that.display_name
-  private_ip_id = data.oci_core_private_ips.that.private_ips.0.id
+  display_name  = oci_core_instance.oracle.display_name
+  private_ip_id = data.oci_core_private_ips.this.private_ips.0.id
 }
 
 resource "oci_core_volume_backup_policy" "this" {
@@ -254,8 +250,8 @@ resource "oci_core_volume_backup_policy_assignment" "this" {
 
   asset_id = (
     count.index < 2 ?
-    oci_core_instance.this[count.index].boot_volume_id :
-    oci_core_instance.that.boot_volume_id
+    oci_core_instance.ubuntu[count.index].boot_volume_id :
+    oci_core_instance.oracle.boot_volume_id
   )
   policy_id = oci_core_volume_backup_policy.this.id
 }
